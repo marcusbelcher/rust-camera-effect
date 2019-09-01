@@ -1,6 +1,5 @@
-// main.rs
 mod hello;
 
 fn main() {
-    hello::nested::print()
+    hello::nested::print();
 }

@@ -3,3 +3,6 @@ name = "rust_learning"
 version = "0.1.0"
 authors = ["Marcus Watson <marcus.scott.belcher@gmail.com>"]
 edition = "2018"
+
+[dev-dependencies]
+pretty_assertions = "0.4.0"
