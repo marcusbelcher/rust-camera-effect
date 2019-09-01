@@ -1,4 +1,6 @@
-// hello.rs
+// main.rs
+mod hello;
+
 fn main() {
-    println!("Hello, World!");
+    hello::nested::print()
 }

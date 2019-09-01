@@ -4,14 +4,32 @@
   "version": "2.0.0",
   "tasks": [
     {
-      "label": "cargo run",
-      "type": "shell", // "type": "cargo",
-      "command": "cargo run", // "subcommand": "build",
-      // "problemMatcher": ["$rustc"],
+      "label": "cargo run debug",
+      "type": "shell",
+      "command": "cargo run -v",
       "group": {
         "kind": "build",
         "isDefault": true
       }
+    },
+    {
+      "label": "cargo run release",
+      "type": "shell",
+      "command": "cargo run -v --release",
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      }
+    },
+    {
+      "label": "cargo build",
+      "type": "shell",
+      "command": "cargo build -v",
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "problemMatcher": ["$rustc"]
     }
   ]
 }

@@ -10,7 +10,10 @@ Repository presumes you are on macOS
 - Install Clippy by entering `rustup component add clippy` into the terminal
 - Install Rustfmt by entering `rustup component add rustfmt` into the terminal
 - Install VSCode plugin [Rust (rls)](https://marketplace.visualstudio.com/items?itemName=rust-lang.rust)
+
   - Close VSCode and reopen it to make sure rls has installed properly and formatting works
+
+-
 
 ## Useful links
 
