@@ -1,8 +1,29 @@
 [package]
-name = "rust_learning"
+name = "compositor"
 version = "0.1.0"
-authors = ["Marcus Watson <marcus.scott.belcher@gmail.com>"]
+authors = ["Marcus Watson"]
 edition = "2018"
 
-[dev-dependencies]
-pretty_assertions = "0.4.0"
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+js-sys = "0.3.27"
+wasm-bindgen = "0.2.50"
+
+[dependencies.web-sys]
+version = "0.3.4"
+features = [
+  "console",
+  'Document',
+  'Element',
+  'HtmlCanvasElement',
+  'WebGlBuffer',
+  'WebGlRenderingContext',
+  'WebGlProgram',
+  'WebGlShader',
+  'Window',
+]
+
+[profile.release]
+debug = true
