@@ -14,7 +14,7 @@ const handleCameraSuccess = (stream /*: MediaStream */) => {
     videoElement.src = window.URL.createObjectURL(stream);
   }
 
-  this.videoEl.play();
+  videoElement.play();
 };
 
 const handleCameraError = (e /* : any */) => {
@@ -74,7 +74,7 @@ const copyVideoIntoInputCanvas = () => {
 
 const update = () => {
   copyVideoIntoInputCanvas();
-  compositor.copy();
+  compositor.copy(/*input.ctx.getData()*/);
   compositor.render();
 };
 
