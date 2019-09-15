@@ -1,5 +1,6 @@
 mod utils;
 
+use std::{mem, ptr};
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
 use web_sys::{WebGlProgram, WebGlRenderingContext, WebGlShader, WebGlUniformLocation};
@@ -164,7 +165,22 @@ pub fn initialise(element_id: String) -> Result<(), JsValue> {
     // var imageUniform = gl.getUniformLocation(shaderProgram, "image")
     // gl.uniform1i(imageUniform, 0);
 
-    let pixel: [u8; 4] = [255, 255, 255, 255];
+    log!("Creating massive block of memory");
+    let pixel: [u8; /*640 * 480 **/ 4] = unsafe {
+        // Create an uninitialized array.
+        let mut array: [u8; /*640 * 480 **/ 4] = mem::uninitialized();
+
+        for (_i, element) in array.iter_mut().enumerate() {
+            // Overwrite `element` without running the destructor of the old value.
+            // Since Foo does not implement Copy, it is moved.
+            ptr::write(element, 255);
+        }
+
+        array
+    };
+
+    log!("Created massive block of memory");
+
     let texture = context.create_texture();
     context.bind_texture(WebGlRenderingContext::TEXTURE_2D, texture.as_ref());
     context.tex_image_2d_with_i32_and_i32_and_i32_and_format_and_type_and_opt_u8_array(
@@ -172,8 +188,8 @@ pub fn initialise(element_id: String) -> Result<(), JsValue> {
         WebGlRenderingContext::TEXTURE_2D,
         0,
         WebGlRenderingContext::RGBA as i32,
-        1,
-        1,
+        1, //640,
+        1, //480,
         0,
         WebGlRenderingContext::RGBA,
         WebGlRenderingContext::UNSIGNED_BYTE,
