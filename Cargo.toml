@@ -18,6 +18,7 @@ features = [
   'Document',
   'Element',
   'HtmlCanvasElement',
+  'ImageData',
   'Window',
   "WebGl2RenderingContext",
   "WebGlActiveInfo"	,

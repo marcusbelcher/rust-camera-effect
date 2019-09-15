@@ -22,7 +22,7 @@ const handleCameraError = (e /* : any */) => {
 };
 
 const initCamera = () => {
-  videoElement = document.createElement("video");
+  videoElement = document.getElementById("camera");
   videoElement.setAttribute("muted", "");
   videoElement.setAttribute("playsinline", "");
   videoElement.setAttribute("autoplay", "");
@@ -74,8 +74,12 @@ const copyVideoIntoInputCanvas = () => {
 
 const update = () => {
   copyVideoIntoInputCanvas();
-  compositor.copy(/*input.ctx.getData()*/);
-  compositor.render();
+  if (initialised) {
+    compositor.copy(
+      input.ctx.getImageData(0, 0, input.canvas.width, input.canvas.height)
+    );
+    compositor.render();
+  }
 };
 
 const tick = () => {
