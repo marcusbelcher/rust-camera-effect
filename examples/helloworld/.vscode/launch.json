@@ -1,0 +1,23 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "(OSX) Launch Debug",
+      "type": "lldb",
+      "request": "launch",
+      "program": "${workspaceRoot}/target/debug/rust_learning",
+      "args": [],
+      "cwd": "${workspaceRoot}",
+      "preLaunchTask": "cargo run debug"
+    },
+    {
+      "name": "(OSX) Launch Release",
+      "type": "lldb",
+      "request": "launch",
+      "program": "${workspaceRoot}/target/release/rust_learning",
+      "args": [],
+      "cwd": "${workspaceRoot}",
+      "preLaunchTask": "cargo run release"
+    }
+  ]
+}

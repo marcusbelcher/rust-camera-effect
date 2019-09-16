@@ -1,6 +1,6 @@
 # rust-learning
 
-Repository presumes you are on macOS. This is a very inefficient demo on how to flip a camera feed from RGB to BGR via WebGL and Rust.
+Repository presumes you are on macOS
 
 ## Installation
 
@@ -13,16 +13,8 @@ Repository presumes you are on macOS. This is a very inefficient demo on how to 
 
   - Close VSCode and reopen it to make sure rls has installed properly and formatting works
 
-- Install [Wasm-pack](curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh)
-- Run `cargo install cargo-generate`
-- Install [Node.JS](https://nodejs.org/en/) or update NPM via `npm install npm@latest -g`
-
-## Build
-
-For each rust code change `wasm-pack build && cd www && npm install && npm start && cd ..`
+-
 
 ## Useful links
 
-- https://doc.rust-lang.org/
 - https://www.forrestthewoods.com/blog/how-to-debug-rust-with-visual-studio-code/
-- https://rustwasm.github.io/docs/book/
