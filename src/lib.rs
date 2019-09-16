@@ -1,16 +1,29 @@
 mod utils;
 
+// use std::cell::RefCell;
+// use std::rc::Rc;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
-use web_sys::{ImageData, WebGlProgram, WebGlRenderingContext, WebGlShader};
+use web_sys::{
+    HtmlElement, ImageData, WebGlProgram, WebGlRenderingContext, WebGlShader, WebGlUniformLocation,
+};
 
-const WIDTH: i32 = 256;
-const HEIGHT: i32 = 256;
+const WIDTH: i32 = 128;
+const HEIGHT: i32 = 128;
 const CHANNELS: i32 = 4;
 const BUFFER_SIZE: usize = ((WIDTH * HEIGHT) * CHANNELS) as usize;
 static mut PIXEL_DATA: [u8; BUFFER_SIZE] = [255; BUFFER_SIZE];
 static mut PIXEL_DATA_UPDATING: bool = false;
 static mut PIXEL_DATA_UPDATED: bool = false;
+// static mut CLIENT_READY: bool = false;
+const VERTICES: [f32; 18] = [
+    -1.0, -1.0, 0.0, // Bottom left
+    1.0, -1.0, 0.0, // Bottem right
+    1.0, 1.0, 0.0, // Top right
+    -1.0, -1.0, 0.0, // Bottom left
+    1.0, 1.0, 0.0, // Top right
+    -1.0, 1.0, 0.0, // Top left
+];
 
 #[wasm_bindgen(start)]
 pub fn start() {
@@ -75,14 +88,6 @@ pub fn initialise(element_id: String) -> Result<(), JsValue> {
     context.use_program(Some(&program));
 
     // Build model
-    let vertices: [f32; 18] = [
-        -1.0, -1.0, 0.0, // Bottom left
-        1.0, -1.0, 0.0, // Bottem right
-        1.0, 1.0, 0.0, // Top right
-        -1.0, -1.0, 0.0, // Bottom left
-        1.0, 1.0, 0.0, // Top right
-        -1.0, 1.0, 0.0, // Top left
-    ];
 
     let vertex_buffer = context
         .create_buffer()
@@ -98,7 +103,7 @@ pub fn initialise(element_id: String) -> Result<(), JsValue> {
     // As a result, after `Float32Array::view` we have to be very careful not to
     // do any memory allocations before it's dropped.
     unsafe {
-        let vert_array = js_sys::Float32Array::view(&vertices);
+        let vert_array = js_sys::Float32Array::view(&VERTICES);
         context.buffer_data_with_array_buffer_view(
             WebGlRenderingContext::ARRAY_BUFFER,
             &vert_array,
@@ -199,11 +204,64 @@ pub fn initialise(element_id: String) -> Result<(), JsValue> {
     context.draw_arrays(
         WebGlRenderingContext::TRIANGLES,
         0,
-        (vertices.len() / 3) as i32,
+        (VERTICES.len() / 3) as i32,
     );
 
+    // Update loop
+    // let f = Rc::new(RefCell::new(None));
+    // let g = f.clone();
+    // *g.borrow_mut() = Some(Closure::wrap(Box::new(move || {
+    // let f = Closure::wrap(Box::new(move || {
+    // do stuff...
+    //         log!("Rust update loop");
+    //         // Update texture
+    //          update_texture_and_draw(&context, texture, texture_location);
+
+    //         // Schedule ourself for another requestAnimationFrame callback.
+    //         request_animation_frame(f.borrow().as_ref().unwrap());
+    // //})  as Box<FnMut()>);
+    //     // }) as Box<dyn FnMut()>));
+
+    //     request_animation_frame(g.borrow().as_ref().unwrap());
     // Fin
     Ok(())
+}
+
+pub fn update_texture_and_draw(
+    mut context: &WebGlRenderingContext,
+    mut texture: Option<web_sys::WebGlTexture>,
+    mut texture_location: Option<WebGlUniformLocation>,
+) {
+    unsafe {
+        context.bind_texture(WebGlRenderingContext::TEXTURE_2D, texture.as_ref());
+        if PIXEL_DATA_UPDATED == true {
+            context.tex_sub_image_2d_with_i32_and_i32_and_u32_and_type_and_opt_u8_array(
+                WebGlRenderingContext::TEXTURE_2D,
+                0,
+                0,
+                0,
+                WIDTH,
+                HEIGHT,
+                WebGlRenderingContext::RGBA,
+                WebGlRenderingContext::UNSIGNED_BYTE,
+                Some(&PIXEL_DATA),
+            );
+            PIXEL_DATA_UPDATED = false;
+            log!("Copied incoming data");
+        } else {
+            log!("Skipping incoming data");
+        }
+
+        context.uniform1i(Some(texture_location.unwrap().as_ref()), 0);
+        // draw()
+        context.clear_color(0.0, 0.0, 0.0, 1.0);
+        context.clear(WebGlRenderingContext::COLOR_BUFFER_BIT);
+        context.draw_arrays(
+            WebGlRenderingContext::TRIANGLES,
+            0,
+            (VERTICES.len() / 3) as i32,
+        );
+    }
 }
 
 pub fn compile_shader(
@@ -266,11 +324,13 @@ pub fn copy(data: &ImageData) -> Result<(), JsValue> {
             }
             PIXEL_DATA_UPDATING = false;
             PIXEL_DATA_UPDATED = true;
-            log!("Copied incoming data");
+        // log!("Copied incoming data");
         } else {
-            log!("Skipping incoming data");
+            // log!("Skipping incoming data");
         }
     }
+
+    // update_texture_and_draw();
     Ok(())
 }
 

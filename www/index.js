@@ -1,6 +1,7 @@
 import * as compositor from "compositor";
 
 let initialised = false;
+let cameraInitialised = false;
 let videoElement = undefined;
 let input = {
   canvas: undefined,
@@ -15,6 +16,7 @@ const handleCameraSuccess = (stream /*: MediaStream */) => {
   }
 
   videoElement.play();
+  cameraInitialised = true;
 };
 
 const handleCameraError = (e /* : any */) => {
@@ -74,17 +76,21 @@ const copyVideoIntoInputCanvas = () => {
 
 const update = () => {
   copyVideoIntoInputCanvas();
-  if (initialised) {
-    compositor.copy(
-      input.ctx.getImageData(0, 0, input.canvas.width, input.canvas.height)
-    );
-    compositor.render();
+  if (initialised && cameraInitialised) {
+    try {
+      compositor.copy(
+        input.ctx.getImageData(0, 0, input.canvas.width, input.canvas.height)
+      );
+      compositor.render();
+    } catch (e) {
+      console.log(e);
+    }
   }
 };
 
 const tick = () => {
-  init();
   requestAnimationFrame(tick);
+  init();
   update();
 };
 
