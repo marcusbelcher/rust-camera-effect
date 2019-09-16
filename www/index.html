@@ -6,7 +6,7 @@
     <style>
       canvas {
         border: 1px solid black;
-        display: inline-block;
+        display: block;
       }
     </style>
   </head>
@@ -15,9 +15,19 @@
       >This page contains webassembly and javascript content, please enable
       javascript in your browser.</noscript
     >
+    <h1>Rust WebGL Demo</h1>
+    <h3>On how to take a camera feed and flip the RGB channel to BGR</h3>
     <video id="camera" height="480" width="640"></video>
+    <p>Above is the raw camera feed via getUserMedia</p>
     <canvas id="input" height="128" width="128"></canvas>
+    <p>
+      Above is input canvas which warps the 640x480 feed into a Power of 2
+      (128x128)
+    </p>
     <canvas id="output" height="480" width="640"></canvas>
+    <p>
+      Above is the output canvas which renders the input canvas via a BGR shader
+    </p>
     <script src="./bootstrap.js"></script>
   </body>
 </html>

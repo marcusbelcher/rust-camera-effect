@@ -1,6 +1,6 @@
 # rust-learning
 
-Repository presumes you are on macOS
+Repository presumes you are on macOS. This is a very inefficient demo on how to flip a camera feed from RGB to BGR via WebGL and Rust.
 
 ## Installation
 

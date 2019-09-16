@@ -7,6 +7,8 @@ let input = {
   canvas: undefined,
   ctx: undefined
 };
+const fps = 30;
+let fpsInterval, now, old, elapsed;
 
 const handleCameraSuccess = (stream /*: MediaStream */) => {
   if ("srcObject" in videoElement) {
@@ -57,6 +59,8 @@ const initInput = () => {
 
 const init = () => {
   if (!initialised && typeof compositor.initialise !== "undefined") {
+    fpsInterval = 1000 / fps;
+    old = Date.now();
     compositor.initialise("output");
     initInput();
     initCamera();
@@ -81,7 +85,6 @@ const update = () => {
       compositor.copy(
         input.ctx.getImageData(0, 0, input.canvas.width, input.canvas.height)
       );
-      compositor.render();
     } catch (e) {
       console.log(e);
     }
@@ -89,9 +92,18 @@ const update = () => {
 };
 
 const tick = () => {
+  // request another frame
   requestAnimationFrame(tick);
-  init();
-  update();
+  // calc elapsed time since last loop
+  now = Date.now();
+  elapsed = now - old;
+
+  // if enough time has elapsed, draw the next frame
+  if (elapsed > fpsInterval) {
+    old = now - (elapsed % fpsInterval);
+    update();
+  }
 };
 
+init();
 tick();

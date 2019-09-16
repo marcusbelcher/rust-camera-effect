@@ -1,12 +1,10 @@
 mod utils;
 
-// use std::cell::RefCell;
-// use std::rc::Rc;
+use std::cell::RefCell;
+use std::rc::Rc;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
-use web_sys::{
-    HtmlElement, ImageData, WebGlProgram, WebGlRenderingContext, WebGlShader, WebGlUniformLocation,
-};
+use web_sys::{ImageData, WebGlProgram, WebGlRenderingContext, WebGlShader};
 
 const WIDTH: i32 = 128;
 const HEIGHT: i32 = 128;
@@ -24,6 +22,16 @@ const VERTICES: [f32; 18] = [
     1.0, 1.0, 0.0, // Top right
     -1.0, 1.0, 0.0, // Top left
 ];
+
+fn window() -> web_sys::Window {
+    web_sys::window().expect("no global `window` exists")
+}
+
+fn request_animation_frame(f: &Closure<dyn FnMut()>) {
+    window()
+        .request_animation_frame(f.as_ref().unchecked_ref())
+        .expect("should register `requestAnimationFrame` OK");
+}
 
 #[wasm_bindgen(start)]
 pub fn start() {
@@ -71,11 +79,8 @@ pub fn initialise(element_id: String) -> Result<(), JsValue> {
         uniform sampler2D image;
 
         void main(void) {
-            if(vTextureCoord.x > 0.5) {
-                gl_FragColor = texture2D(image, vTextureCoord);
-            } else {
-                gl_FragColor = vec4(vTextureCoord.x, vTextureCoord.y, 0.0, 1.0);
-            }
+            gl_FragColor = texture2D(image, vTextureCoord);
+            gl_FragColor = vec4(gl_FragColor.b, gl_FragColor.g, gl_FragColor.r, gl_FragColor.a);
         }
     "#,
     )?;
@@ -123,12 +128,12 @@ pub fn initialise(element_id: String) -> Result<(), JsValue> {
 
     // Add uvs
     let uvs: [f32; 12] = [
-        0.0, 0.0, // Bottom left
-        1.0, 0.0, // Bottem right
-        1.0, 1.0, // Top right
-        0.0, 0.0, // Bottom left
-        1.0, 1.0, // Top right
-        0.0, 1.0, // Top left
+        0.0, 1.0, // Bottom left
+        1.0, 1.0, // Bottem right
+        1.0, 0.0, // Top right
+        0.0, 1.0, // Bottom left
+        1.0, 0.0, // Top right
+        0.0, 0.0, // Top left
     ];
 
     let uv_buffer = context
@@ -167,18 +172,20 @@ pub fn initialise(element_id: String) -> Result<(), JsValue> {
     let texture = context.create_texture();
     context.bind_texture(WebGlRenderingContext::TEXTURE_2D, texture.as_ref());
     unsafe {
-        context.tex_image_2d_with_i32_and_i32_and_i32_and_format_and_type_and_opt_u8_array(
-            //context.tex_image_2d_with_i32_and_i32_and_i32_and_format_and_type_and_opt_array_buffer_view(
-            WebGlRenderingContext::TEXTURE_2D,
-            0,
-            WebGlRenderingContext::RGBA as i32,
-            WIDTH,
-            HEIGHT,
-            0,
-            WebGlRenderingContext::RGBA,
-            WebGlRenderingContext::UNSIGNED_BYTE,
-            Some(&PIXEL_DATA),
-        );
+        context
+            .tex_image_2d_with_i32_and_i32_and_i32_and_format_and_type_and_opt_u8_array(
+                //context.tex_image_2d_with_i32_and_i32_and_i32_and_format_and_type_and_opt_array_buffer_view(
+                WebGlRenderingContext::TEXTURE_2D,
+                0,
+                WebGlRenderingContext::RGBA as i32,
+                WIDTH,
+                HEIGHT,
+                0,
+                WebGlRenderingContext::RGBA,
+                WebGlRenderingContext::UNSIGNED_BYTE,
+                Some(&PIXEL_DATA),
+            )
+            .expect("should create GPU memory OK");
     }
     context.generate_mipmap(WebGlRenderingContext::TEXTURE_2D);
     context.tex_parameteri(
@@ -207,61 +214,50 @@ pub fn initialise(element_id: String) -> Result<(), JsValue> {
         (VERTICES.len() / 3) as i32,
     );
 
-    // Update loop
-    // let f = Rc::new(RefCell::new(None));
-    // let g = f.clone();
-    // *g.borrow_mut() = Some(Closure::wrap(Box::new(move || {
-    // let f = Closure::wrap(Box::new(move || {
-    // do stuff...
-    //         log!("Rust update loop");
-    //         // Update texture
-    //          update_texture_and_draw(&context, texture, texture_location);
+    input_data_update_loop(context, texture.unwrap());
 
-    //         // Schedule ourself for another requestAnimationFrame callback.
-    //         request_animation_frame(f.borrow().as_ref().unwrap());
-    // //})  as Box<FnMut()>);
-    //     // }) as Box<dyn FnMut()>));
-
-    //     request_animation_frame(g.borrow().as_ref().unwrap());
     // Fin
     Ok(())
 }
 
-pub fn update_texture_and_draw(
-    mut context: &WebGlRenderingContext,
-    mut texture: Option<web_sys::WebGlTexture>,
-    mut texture_location: Option<WebGlUniformLocation>,
-) {
-    unsafe {
-        context.bind_texture(WebGlRenderingContext::TEXTURE_2D, texture.as_ref());
-        if PIXEL_DATA_UPDATED == true {
-            context.tex_sub_image_2d_with_i32_and_i32_and_u32_and_type_and_opt_u8_array(
-                WebGlRenderingContext::TEXTURE_2D,
-                0,
-                0,
-                0,
-                WIDTH,
-                HEIGHT,
-                WebGlRenderingContext::RGBA,
-                WebGlRenderingContext::UNSIGNED_BYTE,
-                Some(&PIXEL_DATA),
-            );
-            PIXEL_DATA_UPDATED = false;
-            log!("Copied incoming data");
-        } else {
-            log!("Skipping incoming data");
-        }
+pub fn input_data_update_loop(gl: WebGlRenderingContext, texture: web_sys::WebGlTexture) {
+    let f = Rc::new(RefCell::new(None));
+    let g = f.clone();
 
-        context.uniform1i(Some(texture_location.unwrap().as_ref()), 0);
-        // draw()
-        context.clear_color(0.0, 0.0, 0.0, 1.0);
-        context.clear(WebGlRenderingContext::COLOR_BUFFER_BIT);
-        context.draw_arrays(
-            WebGlRenderingContext::TRIANGLES,
-            0,
-            (VERTICES.len() / 3) as i32,
-        );
+    {
+        *g.borrow_mut() = Some(Closure::wrap(Box::new(move || {
+            gl.bind_texture(WebGlRenderingContext::TEXTURE_2D, Some(&texture));
+            unsafe {
+                if PIXEL_DATA_UPDATED == true {
+                    gl.tex_sub_image_2d_with_i32_and_i32_and_u32_and_type_and_opt_u8_array(
+                        WebGlRenderingContext::TEXTURE_2D,
+                        0,
+                        0,
+                        0,
+                        WIDTH,
+                        HEIGHT,
+                        WebGlRenderingContext::RGBA,
+                        WebGlRenderingContext::UNSIGNED_BYTE,
+                        Some(&PIXEL_DATA),
+                    )
+                    .expect("should update GPU memory OK");
+                    PIXEL_DATA_UPDATED = false;
+                }
+            }
+
+            gl.clear_color(0.0, 0.0, 0.0, 1.0);
+            gl.clear(WebGlRenderingContext::COLOR_BUFFER_BIT);
+            gl.draw_arrays(
+                WebGlRenderingContext::TRIANGLES,
+                0,
+                (VERTICES.len() / 3) as i32,
+            );
+            //update_texture_and_draw(gl, texture, texture_location);
+            request_animation_frame(f.borrow().as_ref().unwrap());
+        }) as Box<dyn FnMut()>));
     }
+
+    request_animation_frame(g.borrow().as_ref().unwrap());
 }
 
 pub fn compile_shader(
@@ -317,6 +313,7 @@ pub fn link_program(
 #[wasm_bindgen]
 pub fn copy(data: &ImageData) -> Result<(), JsValue> {
     unsafe {
+        // TODO use mutex
         if PIXEL_DATA_UPDATED == false && PIXEL_DATA_UPDATING == false {
             PIXEL_DATA_UPDATING = true;
             for i in 0..BUFFER_SIZE {
@@ -324,18 +321,8 @@ pub fn copy(data: &ImageData) -> Result<(), JsValue> {
             }
             PIXEL_DATA_UPDATING = false;
             PIXEL_DATA_UPDATED = true;
-        // log!("Copied incoming data");
-        } else {
-            // log!("Skipping incoming data");
         }
     }
 
-    // update_texture_and_draw();
-    Ok(())
-}
-
-#[wasm_bindgen]
-pub fn render() -> Result<(), JsValue> {
-    // log!("Compositor rendering composited image to output");
     Ok(())
 }
