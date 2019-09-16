@@ -1,0 +1,47 @@
+[package]
+name = "compositor"
+version = "0.1.0"
+authors = ["Marcus Watson"]
+edition = "2018"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+js-sys = "0.3.27"
+wasm-bindgen = "0.2.50"
+
+[dependencies.web-sys]
+version = "^0.3.27"
+features = [
+  "console",
+  'Document',
+  'Element',
+  'HtmlElement',
+  'HtmlCanvasElement',
+  'ImageData',
+  'Window',
+  "WebGl2RenderingContext",
+  "WebGlActiveInfo"	,
+  "WebGlBuffer"	,
+  "WebGlContextAttributes"	,
+  "WebGlContextEvent"	,
+  "WebGlContextEventInit"	,
+  "WebGlFramebuffer",
+  "WebGlProgram",
+  "WebGlQuery",
+  "WebGlRenderbuffer",
+  "WebGlRenderingContext"	,
+  "WebGlSampler",
+  "WebGlShader",
+  "WebGlShaderPrecisionFormat",
+  "WebGlSync"	,
+  "WebGlTexture",
+  "WebGlTransformFeedback",
+  "WebGlUniformLocation",
+  "WebGlVertexArrayObject"
+]
+
+[profile.release]
+debug = true
+
